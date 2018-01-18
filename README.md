@@ -27,7 +27,8 @@ server.on(eventName, function (event) {
     console.log(event.files); // --> { "file1": { "name": "calc.exe", "path": "C:\Windows\Temp\1-4345fdgk20asdnvbc.tmp" } }
 
     this.sendMessage({
-        'some_data': 'that I have to send'
+        'id': uuid
+        ,'some_data': 'that I have to send'
         , 'my_buffer': new Buffer([0x23, 0x73, 0xa0, 0xbf])
     });
 });
@@ -36,7 +37,8 @@ server.on(eventName, function (event) {
 var client = new Netmsg().connect({ host: '10.0.0.27', port: 1974, uuid, eventName });
 client.on('connect', function () {
     client.sendMessage({
-        'note': 'this message has a file attached to it'
+        'id': uuid
+        ,'note': 'this message has a file attached to it'
     }, {
         'file1': {
             'name': 'calc.exe'
