@@ -4,6 +4,8 @@
 
 Simple message transfer over network between Node.js, with Buffer and file support
 
+- Fixed to connect only authenticated id and event name.
+
 ## Installation:
 
 ```
@@ -15,10 +17,12 @@ npm install --save netmsg
 ```javascript
 
 const Netmsg = require('netmsg');
+const uuid = 'id';
+const eventName = 'anyone';
 
-var server = new Netmsg().listen({ host: '0.0.0.0', port: 1974 });
+var server = new Netmsg().listen({ host: '0.0.0.0', port: 1974, uuid, eventName});
 
-server.on('message', function (event) {
+server.on(eventName, function (event) {
     console.log(event.message); // --> { "note": "this message has a file attached to it" }
     console.log(event.files); // --> { "file1": { "name": "calc.exe", "path": "C:\Windows\Temp\1-4345fdgk20asdnvbc.tmp" } }
 
@@ -29,7 +33,7 @@ server.on('message', function (event) {
 });
 
 
-var client = new Netmsg().connect({ host: '10.0.0.27', port: 1974 });
+var client = new Netmsg().connect({ host: '10.0.0.27', port: 1974, uuid, eventName });
 client.on('connect', function () {
     client.sendMessage({
         'note': 'this message has a file attached to it'
@@ -40,7 +44,7 @@ client.on('connect', function () {
         }
     })
 });
-client.on('message', function (event) {
+client.on(eventName, function (event) {
     console.log(event.message); --> { "some_data": "that I have to send", "my_buffer": <Buffer 23 73 a0 bf> }
 });
 

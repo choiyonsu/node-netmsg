@@ -331,6 +331,8 @@ Netmsg.prototype._queueIncomingMessage = function (socket, message) {
     var that = this;
     var msgdata = socket.__msgdata;
 
+    if (message.message.id !== that.uuid) throw new Error('Unauthorized connection.');
+    
     msgdata.incomingMessages.push(message);
 
     return that._tryReleaseIncomingMessageQueue(socket);
@@ -349,7 +351,7 @@ Netmsg.prototype._tryReleaseIncomingMessageQueue = function (socket) {
     while (msgdata.incomingMessages.length && !msgdata.incomingMessages[0].holdingUntilGetComplete) {
         var message = msgdata.incomingMessages.shift();
 
-        that.emit('message', {
+        that.emit(that.eventName, {
             message: message['message']
             , files: message['files']
             , socket: socket
@@ -574,10 +576,15 @@ Netmsg.prototype.sendMessageTo = function (socket, message, files) {
  * @param {Number?} options.backlog
  * @param {String?} options.path
  * @param {Boolean?} options.exclusive
+ * @param {String} options.uuid
+ * @param {String} options.eventName
  * @returns {Netmsg}
  */
 Netmsg.prototype.listen = function (options) {
     var that = this;
+
+    that.uuid = options.uuid;
+    that.eventName = options.eventName || 'message';
 
     var server = Net.createServer(function (socket) {
         that.listenOnSocket(socket);
@@ -658,6 +665,8 @@ Netmsg.prototype.listenOnSocket = function (socket) {
  * @param {Number?} options.totalTimeout Will stop any connection/retry attempt after specified timeout.
  * @param {Number=0} options.retry How many times to retry when encountering EHOSTUNREACH or ETIMEOUT.
  * @param {Boolean=true} options.noDelay Disables the Nagle algorithm.
+ * @param {String} options.uuid
+ * @param {String} options.eventName
  * @returns {Netmsg}
  */
 Netmsg.prototype.connect = function (options) {
@@ -678,6 +687,9 @@ Netmsg.prototype.connect = function (options) {
         : 0;
     
     var timeout = null;
+
+    that.uuid = options.uuid;
+    that.eventName = options.eventName || 'message';
 
     // Abort any previous `connect` operation
     if (that._connectingSocket) {
